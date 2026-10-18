@@ -1,10 +1,24 @@
 import express from "express";
+import cors from "cors";
+import "dotenv/config"
+import { clerkMiddleware } from "@clerk/express";
+import { clerkWebhookHandler } from "./webhooks/clerk";
+import { getEnv } from "./lib/env";
 
+const env = getEnv();
 const app = express();
-const port = 3001;
 
 
+const rawJson = express.raw({ type: "application/json", limit: "1mb" });
 
-app.listen(port, () => {
-	console.log(`Server listening on port ${port}`);
+app.post("/webhooks/clerk", rawJson, (req, res) => {
+  clerkWebhookHandler(req, res);
+});
+
+app.use(express.json());
+app.use(cors());
+app.use(clerkMiddleware());
+
+app.listen(env.PORT, () => {
+  console.log(`Server listening on port ${env.PORT}`);
 });
